@@ -31,27 +31,27 @@ class_name NCryptTest
 # VARIABLES
 
 # plaintext
-var P:PoolByteArray
+var P: PackedByteArray
 
 # keys and ivs, indexed by bit length
-const A:Dictionary = { }
+var A: Dictionary = {}
 
 # scratch variables used by tests
-var tv:Array
-var ky:PoolByteArray
-var iv:PoolByteArray
-var pt:PoolByteArray
-var ec:PoolByteArray
+var tv: Array
+var ky: PackedByteArray
+var iv: PackedByteArray
+var pt: PackedByteArray
+var ec: PackedByteArray
 
 # ==============================================================================
 # NCryptTest
 
 func _init() -> void:
 	# generate key and iv buffers
-	for i in [ 64, 96, 128, 192, 256, 384, 512, 1024, 2048 ]:
-		var ib:int = i>>3
+	for i in [64, 96, 128, 192, 256, 384, 512, 1024, 2048]:
+		var ib: int = i >> 3
 
-		var a:PoolByteArray = PoolByteArray()
+		var a: PackedByteArray = PackedByteArray()
 		a.resize(ib)
 		for j in range(ib): a[j] = 0x80 if (j == 0) else 0x00
 
@@ -59,14 +59,14 @@ func _init() -> void:
 
 	# generate source plaintext
 	# p0 is 512 ASCII bytes of Bacon Ipsum https://baconipsum.com
-	var p0:PoolByteArray = 'Meatloaf turducken spare ribs, chuck aute lorem voluptate venison anim est excepteur pork aliquip hamburger. Tongue ribeye cillum anim sirloin pastrami bacon deserunt pork chop alcatra ground round sunt. Adipisicing in chuck bresaola id. Andouille proident turducken, pork chop labore chuck brisket shankle spare ribs capicola commodo voluptate rump in kielbasa. Ad tongue officia cupidatat, corned beef doner swine velit cupim. Shankle flank culpa short loin pig, pork belly pork chop. Pastrami aliqu deserunt. '.to_ascii()
-	for i in range(32768/p0.size()):
+	var p0: PackedByteArray = 'Meatloaf turducken spare ribs, chuck aute lorem voluptate venison anim est excepteur pork aliquip hamburger. Tongue ribeye cillum anim sirloin pastrami bacon deserunt pork chop alcatra ground round sunt. Adipisicing in chuck bresaola id. Andouille proident turducken, pork chop labore chuck brisket shankle spare ribs capicola commodo voluptate rump in kielbasa. Ad tongue officia cupidatat, corned beef doner swine velit cupim. Shankle flank culpa short loin pig, pork belly pork chop. Pastrami aliqu deserunt. '.to_ascii_buffer()
+	for i in range(32768 / p0.size()):
 		P.append_array(p0)
 	assert(P.size() == 32768)
 
 	return
 
-func _pba_equal(a:PoolByteArray, b:PoolByteArray) -> bool:
+func _pba_equal(a: PackedByteArray, b: PackedByteArray) -> bool:
 	if (a.size() != b.size()): return false
 	for i in range(a.size()):
 		if (a[i] != b[i]): return false
@@ -129,90 +129,90 @@ func run_all_tests() -> void:
 # TESTS
 
 func test_hex_to_raw() -> void:
-	var r:PoolByteArray = NCrypt.hex_to_raw('11')
+	var r: PackedByteArray = NCrypt.hex_to_raw('11')
 	assert(r.size() == 1)
-	assert(r[0]     == 0x11)
+	assert(r[0] == 0x11)
 	
 	r = NCrypt.hex_to_raw('11223344')
 	assert(r.size() == 4)
-	assert(r[0]     == 0x11)
-	assert(r[1]     == 0x22)
-	assert(r[2]     == 0x33)
-	assert(r[3]     == 0x44)
+	assert(r[0] == 0x11)
+	assert(r[1] == 0x22)
+	assert(r[2] == 0x33)
+	assert(r[3] == 0x44)
 
 	r = NCrypt.hex_to_raw('11223344aabbccdd')
 	assert(r.size() == 8)
-	assert(r[0]     == 0x11)
-	assert(r[1]     == 0x22)
-	assert(r[2]     == 0x33)
-	assert(r[3]     == 0x44)
-	assert(r[4]     == 0xaa)
-	assert(r[5]     == 0xbb)
-	assert(r[6]     == 0xcc)
-	assert(r[7]     == 0xdd)
+	assert(r[0] == 0x11)
+	assert(r[1] == 0x22)
+	assert(r[2] == 0x33)
+	assert(r[3] == 0x44)
+	assert(r[4] == 0xaa)
+	assert(r[5] == 0xbb)
+	assert(r[6] == 0xcc)
+	assert(r[7] == 0xdd)
 
 	r = NCrypt.hex_to_raw('11223344aabbccdd99')
 	assert(r.size() == 9)
-	assert(r[0]     == 0x11)
-	assert(r[1]     == 0x22)
-	assert(r[2]     == 0x33)
-	assert(r[3]     == 0x44)
-	assert(r[4]     == 0xaa)
-	assert(r[5]     == 0xbb)
-	assert(r[6]     == 0xcc)
-	assert(r[7]     == 0xdd)
-	assert(r[8]     == 0x99)
+	assert(r[0] == 0x11)
+	assert(r[1] == 0x22)
+	assert(r[2] == 0x33)
+	assert(r[3] == 0x44)
+	assert(r[4] == 0xaa)
+	assert(r[5] == 0xbb)
+	assert(r[6] == 0xcc)
+	assert(r[7] == 0xdd)
+	assert(r[8] == 0x99)
 	
 	return
 
 func test_raw_to_hex() -> void:
-	var s:String = NCrypt.raw_to_hex(PoolByteArray([ 0x11 ]))
+	var s: String = NCrypt.raw_to_hex(PackedByteArray([0x11]))
 	assert(s == '11')
 	
-	s = NCrypt.raw_to_hex(PoolByteArray([ 0x11, 0x22, 0x33, 0x44 ]))
+	s = NCrypt.raw_to_hex(PackedByteArray([0x11, 0x22, 0x33, 0x44]))
 	assert(s == '11223344')
 
-	s = NCrypt.raw_to_hex(PoolByteArray([ 0x11, 0x22, 0x33, 0x44, 0xaa, 0xbb, 0xcc, 0xdd ]))
+	s = NCrypt.raw_to_hex(PackedByteArray([0x11, 0x22, 0x33, 0x44, 0xaa, 0xbb, 0xcc, 0xdd]))
 	assert(s == '11223344aabbccdd')
 
-	s = NCrypt.raw_to_hex(PoolByteArray([ 0x11, 0x22, 0x33, 0x44, 0xaa, 0xbb, 0xcc, 0xdd, 0x99 ]))
+	s = NCrypt.raw_to_hex(PackedByteArray([0x11, 0x22, 0x33, 0x44, 0xaa, 0xbb, 0xcc, 0xdd, 0x99]))
 	assert(s == '11223344aabbccdd99')
 	
 	return
 
 func test_rotl32() -> void:
-	for r in range(0,32):
-		assert(NCrypt.rotl32(0x00000001, r)) == (0x00000001 << r)
-		assert(NCrypt.rotl32(0x00000000, r)) == 0x00000000
+	for r in range(0, 32):
+		assert(NCrypt.rotl32(0x00000001, r) == (0x00000001 << r))
+		assert(NCrypt.rotl32(0x00000000, r) == 0x00000000)
 		
-	assert(NCrypt.rotl32(0x80000001,  0)) == 0x80000001
-	assert(NCrypt.rotl32(0x80000001, 32)) == 0x80000001
+	assert(NCrypt.rotl32(0x80000001, 0) == 0x80000001)
+	assert(NCrypt.rotl32(0x80000001, 32) == 0x80000001)
 	
-	assert(NCrypt.rotl32(0xff000000, 1)) == 0xfe000001
+	assert(NCrypt.rotl32(0xff000000, 1) == 0xfe000001)
 	
 	return
 
 func test_rotr32() -> void:
-	for r in range(0,32):
-		assert(NCrypt.rotr32(0x80000000, r)) == (0x80000000 >> r)
-		assert(NCrypt.rotr32(0x00000000, r)) == 0x00000000
+	for r in range(0, 32):
+		assert(NCrypt.rotr32(0x80000000, r) == (0x80000000 >> r))
+		assert(NCrypt.rotr32(0x00000000, r) == 0x00000000)
 		
-	assert(NCrypt.rotr32(0x80000001,  0)) == 0x80000001
-	assert(NCrypt.rotr32(0x80000001, 32)) == 0x80000001
+	assert(NCrypt.rotr32(0x80000001, 0) == 0x80000001)
+	assert(NCrypt.rotr32(0x80000001, 32) == 0x80000001)
 	
-	assert(NCrypt.rotr32(0x000000ff,  1)) == 0x8000007f
+	assert(NCrypt.rotr32(0x000000ff, 1) == 0x8000007f)
 	
 	return
 
 func test_rotl64() -> void:
-	for r in range(0,64):
-		assert(NCrypt.rotl64(1, r)) == (1 << r)
-		assert(NCrypt.rotl64(0, r)) == 0
+	for r in range(0, 64):
+		assert(NCrypt.rotl64(1, r) == (1 << r))
+		assert(NCrypt.rotl64(0, r) == 0)
 
-	assert(NCrypt.rotl64(0x8000000000000001,  0)) == 0x8000000000000001
-	assert(NCrypt.rotl64(0x8000000000000001, 64)) == 0x8000000000000001
+	assert(NCrypt.rotl64(0x8000000000000001, 0) == 0x8000000000000001)
+	assert(NCrypt.rotl64(0x8000000000000001, 64) == 0x8000000000000001)
 
-	assert(NCrypt.rotl64(0xff00000000000000,  1)) == 0xfe00000000000001
+	assert(NCrypt.rotl64(0xff00000000000000, 1) == 0xfe00000000000001)
 	
 	return
 	
@@ -220,10 +220,10 @@ func test_rotl64() -> void:
 
 func test_pkcs5() -> void:
 	# test pad/unpad pairs
-	for pl in [ 4, 8, 16, 24, 32, 64 ]:
-		for i in [ -1, -2, -3 ]:
-			pt = P.subarray(0,pl+i)
-			assert(_pba_equal(pt, PKCS5.unpad(PKCS5.pad(pt,pl))))
+	for pl in [4, 8, 16, 24, 32, 64]:
+		for i in [-1, -2, -3]:
+			pt = P.slice(0, pl + i)
+			assert(_pba_equal(pt, PKCS5.unpad(PKCS5.pad(pt, pl))))
 		
 	# test vectors
 	tv = [
@@ -240,11 +240,11 @@ func test_pkcs5() -> void:
 		'cccccccc04040404',
 	]
 	
-	var pd:int
+	var pd: int
 	for i in range(0, tv.size(), 3):
 		pt = NCrypt.hex_to_raw(tv[i])
-		ec = NCrypt.hex_to_raw(tv[i+2])
-		assert(_pba_equal(ec, PKCS5.pad(pt, tv[i+1])))
+		ec = NCrypt.hex_to_raw(tv[i + 2])
+		assert(_pba_equal(ec, PKCS5.pad(pt, tv[i + 1])))
 		
 	return
 	 	
@@ -252,19 +252,19 @@ func test_pkcs5() -> void:
 
 func test_aes() -> void:
 	# test encrypt/decrypt pairs
-	for kl in [ 128, 192, 256 ]:
-		for pl in [ 16, 32, 1024 ]:
-			pt = P.subarray(0,pl-1)
+	for kl in [128, 192, 256]:
+		for pl in [16, 32, 1024]:
+			pt = P.slice(0, pl - 1)
 			# raw
-			assert(_pba_equal(pt, AES.decrypt_ecb_raw(AES.encrypt_ecb_raw(pt, A[kl]        ), A[kl]        )))
+			assert(_pba_equal(pt, AES.decrypt_ecb_raw(AES.encrypt_ecb_raw(pt, A[kl]), A[kl])))
 			assert(_pba_equal(pt, AES.decrypt_cbc_raw(AES.encrypt_cbc_raw(pt, A[kl], A[128]), A[kl], A[128])))
 			assert(_pba_equal(pt, AES.decrypt_ctr_raw(AES.encrypt_ctr_raw(pt, A[kl], A[128]), A[kl], A[128])))
 			# hex
-			assert(_pba_equal(pt, AES.decrypt_ecb_hex(AES.encrypt_ecb_hex(pt, A[kl]        ), A[kl]        )))
+			assert(_pba_equal(pt, AES.decrypt_ecb_hex(AES.encrypt_ecb_hex(pt, A[kl]), A[kl])))
 			assert(_pba_equal(pt, AES.decrypt_cbc_hex(AES.encrypt_cbc_hex(pt, A[kl], A[128]), A[kl], A[128])))
 			assert(_pba_equal(pt, AES.decrypt_ctr_hex(AES.encrypt_ctr_hex(pt, A[kl], A[128]), A[kl], A[128])))
 			# base64
-			assert(_pba_equal(pt, AES.decrypt_ecb_base64(AES.encrypt_ecb_base64(pt, A[kl]        ), A[kl]        )))
+			assert(_pba_equal(pt, AES.decrypt_ecb_base64(AES.encrypt_ecb_base64(pt, A[kl]), A[kl])))
 			assert(_pba_equal(pt, AES.decrypt_cbc_base64(AES.encrypt_cbc_base64(pt, A[kl], A[128]), A[kl], A[128])))
 			assert(_pba_equal(pt, AES.decrypt_ctr_base64(AES.encrypt_ctr_base64(pt, A[kl], A[128]), A[kl], A[128])))
 	
@@ -285,8 +285,8 @@ func test_aes() -> void:
 	]
 	for i in range(0, tv.size(), 3):
 		ky = NCrypt.hex_to_raw(tv[i])
-		pt = NCrypt.hex_to_raw(tv[i+1])
-		ec = NCrypt.hex_to_raw(tv[i+2])
+		pt = NCrypt.hex_to_raw(tv[i + 1])
+		ec = NCrypt.hex_to_raw(tv[i + 2])
 		assert(_pba_equal(ec, AES.encrypt_ecb_raw(pt, ky)))
 		assert(_pba_equal(pt, AES.decrypt_ecb_raw(ec, ky)))
 		
@@ -314,9 +314,9 @@ func test_aes() -> void:
 	]
 	for i in range(0, tv.size(), 4):
 		ky = NCrypt.hex_to_raw(tv[i])
-		iv = NCrypt.hex_to_raw(tv[i+1])
-		pt = NCrypt.hex_to_raw(tv[i+2])
-		ec = NCrypt.hex_to_raw(tv[i+3])
+		iv = NCrypt.hex_to_raw(tv[i + 1])
+		pt = NCrypt.hex_to_raw(tv[i + 2])
+		ec = NCrypt.hex_to_raw(tv[i + 3])
 		assert(_pba_equal(ec, AES.encrypt_cbc_raw(pt, ky, iv)))
 		assert(_pba_equal(pt, AES.decrypt_cbc_raw(ec, ky, iv)))
 		
@@ -349,9 +349,9 @@ func test_aes() -> void:
 	]
 	for i in range(0, tv.size(), 4):
 		ky = NCrypt.hex_to_raw(tv[i])
-		iv = NCrypt.hex_to_raw(tv[i+1])
-		pt = NCrypt.hex_to_raw(tv[i+2])
-		ec = NCrypt.hex_to_raw(tv[i+3])
+		iv = NCrypt.hex_to_raw(tv[i + 1])
+		pt = NCrypt.hex_to_raw(tv[i + 2])
+		ec = NCrypt.hex_to_raw(tv[i + 3])
 		assert(_pba_equal(ec, AES.encrypt_ctr_raw(pt, ky, iv)))
 		assert(_pba_equal(pt, AES.decrypt_ctr_raw(ec, ky, iv)))
 
@@ -370,10 +370,10 @@ func test_aes() -> void:
 
 func test_arcfour() -> void:
 	# test encrypt/decrypt pairs
-	for kl in [ 256, 512, 1024, 2048 ]:
-		for dl in [ 0, 512, 3072 ]:
-			for pl in [ 16, 32, 1024, 2053 ]:
-				pt = P.subarray(0,pl-1)
+	for kl in [256, 512, 1024, 2048]:
+		for dl in [0, 512, 3072]:
+			for pl in [16, 32, 1024, 2053]:
+				pt = P.slice(0, pl - 1)
 				assert(_pba_equal(pt, ARCFOUR.decrypt_raw(ARCFOUR.encrypt_raw(pt, A[kl], dl), A[kl], dl)))
 				assert(_pba_equal(pt, ARCFOUR.decrypt_hex(ARCFOUR.encrypt_hex(pt, A[kl], dl), A[kl], dl)))
 				assert(_pba_equal(pt, ARCFOUR.decrypt_base64(ARCFOUR.encrypt_base64(pt, A[kl], dl), A[kl], dl)))
@@ -381,22 +381,22 @@ func test_arcfour() -> void:
 	# test vectors
 	# source: https://en.wikipedia.org/wiki/RC4#Test_vectors
 	tv = [
-		NCrypt.raw_to_hex('Key'.to_ascii()),
-		NCrypt.raw_to_hex('Plaintext'.to_ascii()),
+		NCrypt.raw_to_hex('Key'.to_ascii_buffer()),
+		NCrypt.raw_to_hex('Plaintext'.to_ascii_buffer()),
 		'BBF316E8D940AF0AD3',
 		
-		NCrypt.raw_to_hex('Wiki'.to_ascii()),
-		NCrypt.raw_to_hex('pedia'.to_ascii()),
+		NCrypt.raw_to_hex('Wiki'.to_ascii_buffer()),
+		NCrypt.raw_to_hex('pedia'.to_ascii_buffer()),
 		'1021BF0420',
 		
-		NCrypt.raw_to_hex('Secret'.to_ascii()),
-		NCrypt.raw_to_hex('Attack at dawn'.to_ascii()),
+		NCrypt.raw_to_hex('Secret'.to_ascii_buffer()),
+		NCrypt.raw_to_hex('Attack at dawn'.to_ascii_buffer()),
 		'45A01F645FC35B383552544B9BF5'
 	]
 	for i in range(0, tv.size(), 3):
 		ky = NCrypt.hex_to_raw(tv[i])
-		pt = NCrypt.hex_to_raw(tv[i+1])
-		ec = NCrypt.hex_to_raw(tv[i+2])
+		pt = NCrypt.hex_to_raw(tv[i + 1])
+		ec = NCrypt.hex_to_raw(tv[i + 2])
 		assert(_pba_equal(ec, ARCFOUR.encrypt_raw(pt, ky)))
 		assert(_pba_equal(pt, ARCFOUR.decrypt_raw(ec, ky)))
 		
@@ -410,11 +410,11 @@ func test_arcfour() -> void:
 	
 func test_chacha() -> void:
 	# test encrypt/decrypt pairs
-	for kl in [ 128, 256 ]:
-		for il in [ 64, 96 ]:
-			for rc in [ 8, 12, 20 ]:
-				for pl in [ 16, 32, 1024, 2053 ]:
-					pt = P.subarray(0,pl-1)
+	for kl in [128, 256]:
+		for il in [64, 96]:
+			for rc in [8, 12, 20]:
+				for pl in [16, 32, 1024, 2053]:
+					pt = P.slice(0, pl - 1)
 					assert(_pba_equal(pt, CHACHA.decrypt_raw(CHACHA.encrypt_raw(pt, A[kl], A[il], 1, rc), A[kl], A[il], 1, rc)))
 					assert(_pba_equal(pt, CHACHA.decrypt_hex(CHACHA.encrypt_hex(pt, A[kl], A[il], 1, rc), A[kl], A[il], 1, rc)))
 					assert(_pba_equal(pt, CHACHA.decrypt_base64(CHACHA.encrypt_base64(pt, A[kl], A[il], 1, rc), A[kl], A[il], 1, rc)))
@@ -425,7 +425,7 @@ func test_chacha() -> void:
 		'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f',
 		'000000000000004a00000000',
 		1,
-		NCrypt.raw_to_hex('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.'.to_ascii()),
+		NCrypt.raw_to_hex('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.'.to_ascii_buffer()),
 		'6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c20a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b3571639d624e65152ab8f530c359f0861d807ca0dbf500d6a6156a38e088a22b65e52bc514d16ccf806818ce91ab77937365af90bbf74a35be6b40b8eedf2785e42874d',
 	
 		'0000000000000000000000000000000000000000000000000000000000000000',
@@ -448,27 +448,27 @@ func test_chacha() -> void:
 	]
 	for i in range(0, tv.size(), 5):
 		ky = NCrypt.hex_to_raw(tv[i])
-		iv = NCrypt.hex_to_raw(tv[i+1])
-		pt = NCrypt.hex_to_raw(tv[i+3])
-		ec = NCrypt.hex_to_raw(tv[i+4])
-		assert(_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i+2], 20)))
-		assert(_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i+2], 20)))
+		iv = NCrypt.hex_to_raw(tv[i + 1])
+		pt = NCrypt.hex_to_raw(tv[i + 3])
+		ec = NCrypt.hex_to_raw(tv[i + 4])
+		assert(_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i + 2], 20)))
+		assert(_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i + 2], 20)))
 
 		ky[0] ^= 0x55
-		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i+2], 20)))
-		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i+2], 20)))
+		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i + 2], 20)))
+		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i + 2], 20)))
 		ky[0] ^= 0x55
 		
 		iv[0] ^= 0x55
-		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i+2], 20)))
-		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i+2], 20)))
+		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i + 2], 20)))
+		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i + 2], 20)))
 		iv[0] ^= 0x55
 
-		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i+2]+1, 20)))
-		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i+2]+1, 20)))
+		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i + 2] + 1, 20)))
+		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i + 2] + 1, 20)))
 
-		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i+2], 12)))
-		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i+2], 12)))
+		assert(!_pba_equal(ec, CHACHA.encrypt_raw(pt, ky, iv, tv[i + 2], 12)))
+		assert(!_pba_equal(pt, CHACHA.decrypt_raw(ec, ky, iv, tv[i + 2], 12)))
 		
 	return
 
@@ -675,7 +675,7 @@ func test_sha256() -> void:
 
 	for i in range(0, tv.size(), 2):
 		pt = NCrypt.hex_to_raw(tv[i])
-		ec = NCrypt.hex_to_raw(tv[i+1])
+		ec = NCrypt.hex_to_raw(tv[i + 1])
 		assert(_pba_equal(ec, SHA256.hash_raw(pt)))
 		assert(_pba_equal(ec, NCrypt.hex_to_raw(SHA256.hash_hex(pt))))
 		assert(_pba_equal(ec, Marshalls.base64_to_raw(SHA256.hash_base64(pt))))
@@ -714,8 +714,8 @@ func test_hmac_sha256() -> void:
 
 	for i in range(0, tv.size(), 3):
 		ky = NCrypt.hex_to_raw(tv[i])
-		pt = NCrypt.hex_to_raw(tv[i+1])
-		ec = NCrypt.hex_to_raw(tv[i+2])
+		pt = NCrypt.hex_to_raw(tv[i + 1])
+		ec = NCrypt.hex_to_raw(tv[i + 2])
 		assert(_pba_equal(ec, HMACSHA256.hmac_raw(pt, ky)))
 		assert(_pba_equal(ec, NCrypt.hex_to_raw(HMACSHA256.hmac_hex(pt, ky))))
 		assert(_pba_equal(ec, Marshalls.base64_to_raw(HMACSHA256.hmac_base64(pt, ky))))
@@ -724,10 +724,10 @@ func test_hmac_sha256() -> void:
 
 func test_siphash() -> void:
 	# set key 00 01 02...
-	ky = PoolByteArray()
+	ky = PackedByteArray()
 	for i in range(16): ky.append(i)
 	
-	pt = PoolByteArray()
+	pt = PackedByteArray()
 	
 	# source: https://raw.githubusercontent.com/veorq/SipHash/master/vectors.h
 	# SipHash-2-4 64-bit output with key and
@@ -896,16 +896,14 @@ func test_siphash() -> void:
 
 func test_prng() -> void:
 	# test generation works
-	for rl in [ 8, 12, 20 ]:
-		var rng:CSPRNG = CSPRNG.new(rl)
+	for rl in [8, 12, 20]:
+		var rng: CSPRNG = CSPRNG.new(rl)
 		for i in range(1024): rng.rand_64()
 	
 	# test block generation
-	for rl in [ 8, 12, 20 ]:
-		var rng:CSPRNG = CSPRNG.new(rl)
-		for i in [ 4, 8, 16, 32, 64, 128, 192, 256, 384, 512, 1024, 2069 ]:
+	for rl in [8, 12, 20]:
+		var rng: CSPRNG = CSPRNG.new(rl)
+		for i in [4, 8, 16, 32, 64, 128, 192, 256, 384, 512, 1024, 2069]:
 			assert(rng.rand_raw(i).size() == i)
 	
 	return
-	
-	

@@ -39,7 +39,7 @@ a_in	:	Input buffer.
 
 Return	:	SHA256 of input buffer, encoded as a Base64 string.
 """
-static func hash_base64(a_in:PoolByteArray) -> String:
+static func hash_base64(a_in: PackedByteArray) -> String:
 	return Marshalls.raw_to_base64(hash_raw(a_in))
 
 
@@ -51,7 +51,7 @@ a_in	:	Input buffer.
 
 Return	:	SHA256 of input buffer, encoded as a hexadecimal string.
 """
-static func hash_hex(a_in:PoolByteArray) -> String:
+static func hash_hex(a_in: PackedByteArray) -> String:
 	return NCrypt.raw_to_hex(hash_raw(a_in))
 
 
@@ -63,76 +63,76 @@ a_in	:	Input buffer.
 
 Return	:	SHA256 of input buffer.
 """
-static func hash_raw(a_in:PoolByteArray) -> PoolByteArray:
+static func hash_raw(a_in: PackedByteArray) -> PackedByteArray:
 	# Initialize hash values
 	# (first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):
-	var h0:int = 0x6a09e667
-	var h1:int = 0xbb67ae85
-	var	h2:int = 0x3c6ef372
-	var	h3:int = 0xa54ff53a
-	var	h4:int = 0x510e527f
-	var	h5:int = 0x9b05688c
-	var	h6:int = 0x1f83d9ab
-	var	h7:int = 0x5be0cd19
+	var h0: int = 0x6a09e667
+	var h1: int = 0xbb67ae85
+	var h2: int = 0x3c6ef372
+	var h3: int = 0xa54ff53a
+	var h4: int = 0x510e527f
+	var h5: int = 0x9b05688c
+	var h6: int = 0x1f83d9ab
+	var h7: int = 0x5be0cd19
 
 	# Pre-process (pad) the input
-	# Remember PoolByteArray is passed by value so it is safe to modify the input
+	# Remember PackedByteArray is passed by value so it is safe to modify the input
 	# ...begin with the original message of length L bits
-	var l:int = a_in.size() * 8
+	var l: int = a_in.size() * 8
 	# ...append a single '1' bit (and 7 0 bits since this implementation operates at the byte level)
 	a_in.append(0x80)
 	# ...append K '0' bits, where K is the minimum number >= 0 such that L + 1 + K + 64 is a multiple of 512
-	while ((a_in.size()+8) & 0x3f != 0): a_in.append(0x00)
+	while ((a_in.size() + 8) & 0x3f != 0): a_in.append(0x00)
 	# ...append L as a 64-bit big-endian integer, making the total post-processed length a multiple of 512 bits
-	for i in NCrypt.U64_SHIFTS: a_in.append((l>>i) & 0xff)
-	assert(a_in.size()&0x3f == 0)
+	for i in NCrypt.U64_SHIFTS: a_in.append((l >> i) & 0xff)
+	assert(a_in.size() & 0x3f == 0)
 
 	# Process the message in successive 512-bit chunks
-	var w:Array = [
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	var w: Array = [
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 	]
-	var j:int
-	var s0:int
-	var s1:int
-	var t1:int
-	var t2:int
-	var ch:int
-	var mj:int
+	var j: int
+	var s0: int
+	var s1: int
+	var t1: int
+	var t2: int
+	var ch: int
+	var mj: int
 	for pos in range(0, a_in.size(), 64):
 		# Create a 64-entry message schedule array w[0..63] of 32-bit words
 		# Copy chunk into first 16 words w[0..15] of the message schedule array
-		for i in range(0,16):
-			j = pos + (i*4)
-			w[i] = (a_in[j] << 24) | (a_in[j+1] << 16) | (a_in[j+2] << 8) | a_in[j+3]
+		for i in range(0, 16):
+			j = pos + (i * 4)
+			w[i] = (a_in[j] << 24) | (a_in[j + 1] << 16) | (a_in[j + 2] << 8) | a_in[j + 3]
 			pass
 
 		# Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array
-		for i in range(16,64):
-			s0 = NCrypt.rotr32(w[i-15],  7) ^ NCrypt.rotr32(w[i-15], 18) ^ (w[i-15] >>  3)
-			s1 = NCrypt.rotr32(w[i- 2], 17) ^ NCrypt.rotr32(w[i- 2], 19) ^ (w[i- 2] >> 10)
-			w[i] = (w[i-16] + s0 + w[i-7] + s1) & NCrypt.B32
+		for i in range(16, 64):
+			s0 = NCrypt.rotr32(w[i - 15], 7) ^ NCrypt.rotr32(w[i - 15], 18) ^ (w[i - 15] >> 3)
+			s1 = NCrypt.rotr32(w[i - 2], 17) ^ NCrypt.rotr32(w[i - 2], 19) ^ (w[i - 2] >> 10)
+			w[i] = (w[i - 16] + s0 + w[i - 7] + s1) & NCrypt.B32
 			pass
 
 		# Initialize working variables to current hash value
-		var a:int = h0
-		var b:int = h1
-		var c:int = h2
-		var d:int = h3
-		var e:int = h4
-		var f:int = h5
-		var g:int = h6
-		var h:int = h7
+		var a: int = h0
+		var b: int = h1
+		var c: int = h2
+		var d: int = h3
+		var e: int = h4
+		var f: int = h5
+		var g: int = h6
+		var h: int = h7
 
 		# Compression function main loop
 		for i in range(64):
-			s1 = NCrypt.rotr32(e,6) ^ NCrypt.rotr32(e,11) ^ NCrypt.rotr32(e,25)
+			s1 = NCrypt.rotr32(e, 6) ^ NCrypt.rotr32(e, 11) ^ NCrypt.rotr32(e, 25)
 			ch = (e & f) ^ ((~e) & g)
 			t1 = (h + s1 + ch + _RK[i] + w[i]) & NCrypt.B32
 
-			s0 = NCrypt.rotr32(a,2) ^ NCrypt.rotr32(a,13) ^ NCrypt.rotr32(a,22)
+			s0 = NCrypt.rotr32(a, 2) ^ NCrypt.rotr32(a, 13) ^ NCrypt.rotr32(a, 22)
 			mj = (a & b) ^ (a & c) ^ (b & c)
 			t2 = (s0 + mj) & NCrypt.B32
 
@@ -158,18 +158,18 @@ static func hash_raw(a_in:PoolByteArray) -> PoolByteArray:
 		pass
 
 	# Produce the final hash value (big-endian):
-	var digest:PoolByteArray = PoolByteArray()
+	var digest: PackedByteArray = PackedByteArray()
 	digest.resize(32)
 	j = 0
 	for i in NCrypt.U32_SHIFTS:
-		digest[j   ] = (h0>>i) & 0xff
-		digest[j+ 4] = (h1>>i) & 0xff
-		digest[j+ 8] = (h2>>i) & 0xff
-		digest[j+12] = (h3>>i) & 0xff
-		digest[j+16] = (h4>>i) & 0xff
-		digest[j+20] = (h5>>i) & 0xff
-		digest[j+24] = (h6>>i) & 0xff
-		digest[j+28] = (h7>>i) & 0xff
+		digest[j] = (h0 >> i) & 0xff
+		digest[j + 4] = (h1 >> i) & 0xff
+		digest[j + 8] = (h2 >> i) & 0xff
+		digest[j + 12] = (h3 >> i) & 0xff
+		digest[j + 16] = (h4 >> i) & 0xff
+		digest[j + 20] = (h5 >> i) & 0xff
+		digest[j + 24] = (h6 >> i) & 0xff
+		digest[j + 28] = (h7 >> i) & 0xff
 		j += 1
 
 	return digest
@@ -179,7 +179,7 @@ static func hash_raw(a_in:PoolByteArray) -> PoolByteArray:
 
 # round constants
 # (first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311):
-const _RK:Array = [
+const _RK: Array = [
    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,

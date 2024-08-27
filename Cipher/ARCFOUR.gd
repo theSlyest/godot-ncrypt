@@ -41,7 +41,7 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Encrypted buffer, same length as input buffer, encoded as a Base64 string.
 """
-static func encrypt_base64(a_in:PoolByteArray, a_ky:PoolByteArray, a_drop:int = 0) -> String:
+static func encrypt_base64(a_in: PackedByteArray, a_ky: PackedByteArray, a_drop: int = 0) -> String:
 	return Marshalls.raw_to_base64(encrypt_raw(a_in, a_ky, a_drop))
 
 
@@ -55,7 +55,7 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Encrypted buffer, same length as input buffer, encoded as a hexadecimal string.
 """
-static func encrypt_hex(a_in:PoolByteArray, a_ky:PoolByteArray, a_drop:int = 0) -> String:
+static func encrypt_hex(a_in: PackedByteArray, a_ky: PackedByteArray, a_drop: int = 0) -> String:
 	return NCrypt.raw_to_hex(encrypt_raw(a_in, a_ky, a_drop))
 
 
@@ -69,32 +69,32 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Encrypted buffer, same length as input buffer.
 """
-static func encrypt_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_drop:int = 0) -> PoolByteArray:
+static func encrypt_raw(a_in: PackedByteArray, a_ky: PackedByteArray, a_drop: int = 0) -> PackedByteArray:
 	# initialise
-	var il:int = a_in.size()	# input length
-	var kl:int = a_ky.size()	# key   length
-	assert(il >=   1)	
-	assert(kl >=   1)	
+	var il: int = a_in.size() # input length
+	var kl: int = a_ky.size() # key   length
+	assert(il >= 1)
+	assert(kl >= 1)
 	assert(kl <= 256)
 
-	var op:PoolByteArray = PoolByteArray()
+	var op: PackedByteArray = PackedByteArray()
 	op.resize(il)
 	
-	var i:int = 0
-	var j:int = 0
-	var k:int = 0
-	var t:int = 0
+	var i: int = 0
+	var j: int = 0
+	var k: int = 0
+	var t: int = 0
 	
 	# key schedule
-	var s:PoolByteArray = PoolByteArray()
+	var s: PackedByteArray = PackedByteArray()
 	s.resize(256)
-	for i in range(256):
-		s[i] = i
+	for u in range(256):
+		s[u] = u
 	
-	for i in range(256):
-		j = (j + s[i] + a_ky[i % kl]) & 0xff
-		t    = s[i]
-		s[i] = s[j]
+	for u in range(256):
+		j = (j + s[u] + a_ky[u % kl]) & 0xff
+		t = s[u]
+		s[u] = s[j]
 		s[j] = t
 
 	# de/encrypt input => output
@@ -103,16 +103,16 @@ static func encrypt_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_drop:int = 0) 
 	j = 0
 	k = 0
 	for p in range(il + a_drop):
-		i = (i +    1) & 0xff
+		i = (i + 1) & 0xff
 		j = (j + s[i]) & 0xff
 
-		t    = s[i]
+		t = s[i]
 		s[i] = s[j]
 		s[j] = t
 		
 		if (p >= a_drop):
 			op[k] = a_in[k] ^ s[(s[i] + s[j]) & 0xff]
-			k += 1	
+			k += 1
 	
 	return op
 
@@ -127,7 +127,7 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Decrypted buffer.
 """
-static func decrypt_base64(a_in:String, a_ky:PoolByteArray, a_drop:int = 0) -> PoolByteArray:
+static func decrypt_base64(a_in: String, a_ky: PackedByteArray, a_drop: int = 0) -> PackedByteArray:
 	return decrypt_raw(Marshalls.base64_to_raw(a_in), a_ky, a_drop)
 
 
@@ -141,7 +141,7 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Decrypted buffer.
 """
-static func decrypt_hex(a_in:String, a_ky:PoolByteArray, a_drop:int = 0) -> PoolByteArray:
+static func decrypt_hex(a_in: String, a_ky: PackedByteArray, a_drop: int = 0) -> PackedByteArray:
 	return encrypt_raw(NCrypt.hex_to_raw(a_in), a_ky, a_drop)
 
 
@@ -155,6 +155,5 @@ a_drop	:	Number of initial keystream bytes to drop (optional, default 0).
 
 Return	:	Decrypted buffer.
 """
-static func decrypt_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_drop:int = 0) -> PoolByteArray:
+static func decrypt_raw(a_in: PackedByteArray, a_ky: PackedByteArray, a_drop: int = 0) -> PackedByteArray:
 	return encrypt_raw(a_in, a_ky, a_drop)
-

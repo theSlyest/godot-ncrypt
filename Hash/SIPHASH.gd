@@ -46,7 +46,7 @@ a_outlen	:	Output hash length in bytes. Must be 8 or 16 (64 or 128 bits).
 
 Return		:	SipHash of input buffer, encoded as a Base64 string.
 """
-static func hash_base64(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, a_drounds:int = 4, a_outlen:int = 8) -> String:
+static func hash_base64(a_in: PackedByteArray, a_ky: PackedByteArray, a_crounds: int = 2, a_drounds: int = 4, a_outlen: int = 8) -> String:
 	return Marshalls.raw_to_base64(hash_raw(a_in, a_ky, a_crounds, a_drounds, a_outlen))
 
 
@@ -64,7 +64,7 @@ a_outlen	:	Output hash length in bytes. Must be 8 or 16 (64 or 128 bits).
 
 Return		:	SipHash of input buffer, encoded as a hexadecimal string.
 """
-static func hash_hex(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, a_drounds:int = 4, a_outlen:int = 8) -> String:
+static func hash_hex(a_in: PackedByteArray, a_ky: PackedByteArray, a_crounds: int = 2, a_drounds: int = 4, a_outlen: int = 8) -> String:
 	return NCrypt.raw_to_hex(hash_raw(a_in, a_ky, a_crounds, a_drounds, a_outlen))
 
 
@@ -82,21 +82,21 @@ a_outlen	:	Output hash length in bytes. Must be 8 or 16 (64 or 128 bits).
 
 Return		:	SipHash of input buffer.
 """
-static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, a_drounds:int = 4, a_outlen:int = 8) -> PoolByteArray:
+static func hash_raw(a_in: PackedByteArray, a_ky: PackedByteArray, a_crounds: int = 2, a_drounds: int = 4, a_outlen: int = 8) -> PackedByteArray:
 	assert(a_ky.size() == 16)
 	assert(a_outlen == 8 || a_outlen == 16)
 	
 	# intialise
-	var v0:int = 0x736f6d6570736575;
-	var v1:int = 0x646f72616e646f6d;
-	var v2:int = 0x6c7967656e657261;
-	var v3:int = 0x7465646279746573;
+	var v0: int = 0x736f6d6570736575;
+	var v1: int = 0x646f72616e646f6d;
+	var v2: int = 0x6c7967656e657261;
+	var v3: int = 0x7465646279746573;
 	
-	var k0:int = 0
-	var k1:int = 0
+	var k0: int = 0
+	var k1: int = 0
 	for i in range(8):
-		k0 = (k0 << 8) | a_ky[7-i]
-		k1 = (k1 << 8) | a_ky[7-i+8]
+		k0 = (k0 << 8) | a_ky[7 - i]
+		k1 = (k1 << 8) | a_ky[7 - i + 8]
 	
 	v3 ^= k1
 	v2 ^= k0
@@ -105,12 +105,12 @@ static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, 
 	if (a_outlen == 16): v1 ^= 0xee
 
 	# main processing
-	var ilen:int = a_in.size()
-	var imax:int = ilen - (ilen % 8)
-	var ilft:int = ilen & 7
-	var m:int
+	var ilen: int = a_in.size()
+	var imax: int = ilen - (ilen % 8)
+	var ilft: int = ilen & 7
+	var m: int
 	for i in range(0, imax, 8):
-		m = _u8_to_u64le(a_in[i], a_in[i+1], a_in[i+2], a_in[i+3], a_in[i+4], a_in[i+5], a_in[i+6], a_in[i+7]);
+		m = _u8_to_u64le(a_in[i], a_in[i + 1], a_in[i + 2], a_in[i + 3], a_in[i + 4], a_in[i + 5], a_in[i + 6], a_in[i + 7]);
 		v3 ^= m;
 		
 		for j in range(a_crounds):
@@ -132,9 +132,9 @@ static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, 
 		v0 ^= m;
 
 	# final block processing
-	var b:int = 0
+	var b: int = 0
 	for i in range(ilft, 0, -1):
-		b = (b << 8) | (a_in[imax+i-1] & 0xff)
+		b = (b << 8) | (a_in[imax + i - 1] & 0xff)
 	b |= (ilen & 0xff) << 56
 		
 	v3 ^= b
@@ -157,8 +157,8 @@ static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, 
 
 	v0 ^= b
 
-	if (a_outlen == 16)	: v2 ^= 0xee
-	else				: v2 ^= 0xff
+	if (a_outlen == 16): v2 ^= 0xee
+	else: v2 ^= 0xff
 
 	# dround loop
 	for j in range(a_drounds):
@@ -180,7 +180,7 @@ static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, 
 	b = v0 ^ v1 ^ v2 ^ v3
 
 	# create return hash
-	var op:PoolByteArray = PoolByteArray()
+	var op: PackedByteArray = PackedByteArray()
 	for i in NCrypt.U64_SHIFTS_INV:
 		op.append((b >> i) & 0xff)
 	
@@ -212,5 +212,5 @@ static func hash_raw(a_in:PoolByteArray, a_ky:PoolByteArray, a_crounds:int = 2, 
 # ==============================================================================
 # PRIVATE
 
-static func _u8_to_u64le(a:int, b:int, c:int, d:int, e:int, f:int, g:int, h:int) -> int:
-		return ((a&0xff) | ((b&0xff) << 8) | ((c&0xff) << 16) | ((d&0xff) << 24) | ((e&0xff) << 32) | ((f&0xff) << 40) | ((g&0xff) << 48) | ((h&0xff) << 56))
+static func _u8_to_u64le(a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int) -> int:
+		return ((a & 0xff) | ((b & 0xff) << 8) | ((c & 0xff) << 16) | ((d & 0xff) << 24) | ((e & 0xff) << 32) | ((f & 0xff) << 40) | ((g & 0xff) << 48) | ((h & 0xff) << 56))
